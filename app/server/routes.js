@@ -1,7 +1,7 @@
-
 var CT = require('./modules/country-list');
 var AM = require('./modules/account-manager');
 var EM = require('./modules/email-dispatcher');
+var PM = require('./modules/party-manager');
 
 module.exports = function(app) {
 
@@ -41,13 +41,26 @@ module.exports = function(app) {
 	
 // logged-in user homepage //
 	
+	// app.get('/home', function(req, res) {
+	// 	if (req.session.user == null){
+	// // if user is not logged-in redirect back to login page //
+	// 		res.redirect('/');
+	// 	}	else{
+	// 		res.render('home', {
+	// 			title : 'Control Panel',
+	// 			countries : CT,
+	// 			udata : req.session.user
+	// 		});
+	// 	}
+	// });
+
 	app.get('/home', function(req, res) {
 		if (req.session.user == null){
 	// if user is not logged-in redirect back to login page //
 			res.redirect('/');
 		}	else{
-			res.render('home', {
-				title : 'Control Panel',
+			res.render('user-home', {
+				title : 'My Page',
 				countries : CT,
 				udata : req.session.user
 			});
@@ -137,7 +150,7 @@ module.exports = function(app) {
 				req.session.reset = { email:email, passHash:passH };
 				res.render('reset', { title : 'Reset Password' });
 			}
-		})
+		});
 	});
 	
 	app.post('/reset-password', function(req, res) {
@@ -152,7 +165,7 @@ module.exports = function(app) {
 			}	else{
 				res.status(400).send('unable to update password');
 			}
-		})
+		});
 	});
 	
 // view & delete accounts //
@@ -160,7 +173,7 @@ module.exports = function(app) {
 	app.get('/print', function(req, res) {
 		AM.getAllRecords( function(e, accounts){
 			res.render('print', { title : 'Account List', accts : accounts });
-		})
+		});
 	});
 	
 	app.post('/delete', function(req, res){
@@ -180,7 +193,34 @@ module.exports = function(app) {
 			res.redirect('/print');	
 		});
 	});
-	
+
+    app.get('/:username([a-z]+)/party', function(req, res){
+        console.log("parse successful");
+        // res.status(200).send('ok');
+		// res.render('party-home', { title: 'Signup', countries : CT, udata : req.session.user });
+        // res.render('login', { title: 'Hello - Please Login To Your Account' });
+        res.status(200).send({ title: 'Signup', udata : req.session.user });
+    });
+
+    app.post('/party', function(req, res){
+        PM.addNewParty({
+			party_description 	: req.body['party_des'],
+		    party_time 	: req.body['party_time'],
+			party_food 	: req.body['party_food']
+		}, function(e){
+			if (e){
+                console.log("insert with error");
+				res.status(400).send(e);
+			}	else{
+                console.log("insert success");
+				res.status(200).send('ok');
+			}
+		});
+    });
+    
 	app.get('*', function(req, res) { res.render('404', { title: 'Page Not Found'}); });
 
 };
+
+
+
